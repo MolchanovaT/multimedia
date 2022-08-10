@@ -23,8 +23,10 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
     }
 }*/
 
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import ru.netology.nmedia.adapter.AudioAdapter
@@ -38,17 +40,54 @@ class AppActivity : AppCompatActivity() {
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        lateinit var mediaPlayer: MediaPlayer
+
         val viewModel: AudioViewModel by viewModels()
 
         val adapter = AudioAdapter(object : OnInteractionListener {
             override fun onPlay(audio: Audio) {
+
+                mediaPlayer = MediaPlayer()
+
+                if (audio.isPlaying) {
+                    mediaPlayer.stop()
+                    mediaPlayer.reset()
+                    mediaPlayer.release()
+
+                    viewModel.pauseById(audio.id)
+
+                    Toast.makeText(
+                        this@AppActivity,
+                        "Audio has been paused",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+
+                } else {
+
+                    mediaPlayer.setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+
+                    try {
+                        mediaPlayer.setDataSource(audio.songUrl)
+                        mediaPlayer.prepareAsync()
+                        mediaPlayer.setOnPreparedListener { mp ->
+                            mp.start()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    Toast.makeText(this@AppActivity, "Audio started playing..", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
                 viewModel.playById(audio.id)
             }
-
-            override fun onPause(audio: Audio) {
-                viewModel.pauseById(audio.id)
-            }
         })
+
         binding.list.adapter = adapter
         viewModel.data.observe(this) { list ->
             adapter.submitList(list)

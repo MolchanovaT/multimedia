@@ -3,7 +3,6 @@ package ru.netology.nmedia.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.ui.Audio
-import ru.netology.nmedia.viewmodel.AudioViewModel
 
 class AudioRepositoryImpl: AudioRepository {
     private var audioList = listOf(
@@ -27,13 +26,14 @@ class AudioRepositoryImpl: AudioRepository {
 
     private val data = MutableLiveData(audioList)
 
-    override fun getAll(): LiveData<List<AudioViewModel>> = data
+    override fun getAll(): LiveData<List<Audio>> = data
 
     override fun playById(id: Long) {
         audioList = audioList.map {
             if (it.id == id) it.copy(isPlaying = true)
             else it
         }
+        data.value = audioList
     }
 
     override fun pauseById(id: Long) {
@@ -41,5 +41,6 @@ class AudioRepositoryImpl: AudioRepository {
             if (it.id == id) it.copy(isPlaying = false)
             else it
         }
+        data.value = audioList
     }
 }

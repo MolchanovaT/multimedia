@@ -15,21 +15,16 @@ import ru.netology.nmedia.ui.Audio
 
 interface OnInteractionListener {
     fun onPlay(audio: Audio) {}
-    fun onPause(audio: Audio) {}
 }
 
 class AudioAdapter(
-    private val onInteractionListener: OnInteractionListener,
-    var mediaPlayer: MediaPlayer,
-    private val requireContext: Context,
+    private val onInteractionListener: OnInteractionListener
 ) : ListAdapter<Audio, AudioViewHolder>(PostDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioViewHolder {
         val binding = CardAudioBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AudioViewHolder(
             binding,
-            onInteractionListener,
-            mediaPlayer,
-            requireContext
+            onInteractionListener
         )
     }
 
@@ -41,64 +36,28 @@ class AudioAdapter(
 
 class AudioViewHolder(
     private val binding: CardAudioBinding,
-    private val onInteractionListener: OnInteractionListener,
-    var mediaPlayer: MediaPlayer,
-    private val requireContext: Context,
+    private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
+
+    private lateinit var mediaPlayer: MediaPlayer
 
     fun bind(audio: Audio) {
         binding.apply {
             tvTitle.setText("Song " + audio.id)
+            if (audio.isPlaying) {
+                btnPlay.text = "Pause"
+                icon.setBackgroundResource(R.drawable.pause)
+            } else {
+                btnPlay.text = "Play"
+                icon.setBackgroundResource(R.drawable.play)
+            }
             btnPlay.setOnClickListener {
                 val audioUrl = audio.songUrl
                 if (audioUrl != null) {
-                    btnPlay.setOnClickListener {
-                        if (audio.isPlaying) {
-                            mediaPlayer.stop()
-                            mediaPlayer.reset()
-                            mediaPlayer.release()
-                            onInteractionListener.onPause(audio)
-                            Toast.makeText(
-                                requireContext,
-                                "Audio has been paused",
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-                            btnPlay.text = "Play"
-                            icon.setBackgroundResource(R.drawable.play)
-                            audio.isPlaying = false
-                        } else {
-                            playAudio(audioUrl)
-                            onInteractionListener.onPlay(audio)
-                            btnPlay.text = "Pause"
-                            icon.setBackgroundResource(R.drawable.pause)
-                            audio.isPlaying = true
-                        }
-                    }
+                    onInteractionListener.onPlay(audio)
                 }
             }
         }
-    }
-
-    private fun playAudio(audioUrl: String) {
-        mediaPlayer = MediaPlayer()
-
-        mediaPlayer.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-        )
-
-        try {
-            mediaPlayer.setDataSource(audioUrl)
-            mediaPlayer.prepareAsync()
-            mediaPlayer.setOnPreparedListener { mp ->
-                mp.start()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        Toast.makeText(requireContext, "Audio started playing..", Toast.LENGTH_SHORT).show()
     }
 }
 
