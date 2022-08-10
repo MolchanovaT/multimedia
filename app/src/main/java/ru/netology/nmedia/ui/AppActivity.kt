@@ -48,6 +48,11 @@ class AppActivity : AppCompatActivity() {
             override fun onPlay(audio: Audio) {
 
                 mediaPlayer = MediaPlayer()
+                mediaPlayer.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
 
                 if (audio.isPlaying) {
                     mediaPlayer.stop()
@@ -64,13 +69,6 @@ class AppActivity : AppCompatActivity() {
                         .show()
 
                 } else {
-
-                    mediaPlayer.setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .build()
-                    )
-
                     try {
                         mediaPlayer.setDataSource(audio.songUrl)
                         mediaPlayer.prepareAsync()
@@ -80,11 +78,12 @@ class AppActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
+
+                    viewModel.playById(audio.id)
+
                     Toast.makeText(this@AppActivity, "Audio started playing..", Toast.LENGTH_SHORT)
                         .show()
                 }
-
-                viewModel.playById(audio.id)
             }
         })
 

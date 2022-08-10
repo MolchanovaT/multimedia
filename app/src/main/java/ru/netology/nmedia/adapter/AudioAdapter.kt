@@ -1,11 +1,7 @@
 package ru.netology.nmedia.adapter
 
-import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -38,8 +34,6 @@ class AudioViewHolder(
     private val binding: CardAudioBinding,
     private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
-
-    private lateinit var mediaPlayer: MediaPlayer
 
     fun bind(audio: Audio) {
         binding.apply {
