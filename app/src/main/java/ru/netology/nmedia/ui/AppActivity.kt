@@ -40,24 +40,25 @@ class AppActivity : AppCompatActivity() {
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        lateinit var mediaPlayer: MediaPlayer
+        val mediaPlayer = MediaPlayer()
+        mediaPlayer.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+        )
 
         val viewModel: AudioViewModel by viewModels()
 
         val adapter = AudioAdapter(object : OnInteractionListener {
             override fun onPlay(audio: Audio) {
 
-                mediaPlayer = MediaPlayer()
-                mediaPlayer.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-
-                if (audio.isPlaying) {
+                if (mediaPlayer.isPlaying) {
                     mediaPlayer.stop()
                     mediaPlayer.reset()
-                    mediaPlayer.release()
+                    //mediaPlayer.release()
+                }
+
+                if (audio.isPlaying) {
 
                     viewModel.pauseById(audio.id)
 
