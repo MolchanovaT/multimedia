@@ -1,28 +1,5 @@
 package ru.netology.nmedia.ui
 
-/*import android.os.Bundle
-import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
-import ru.netology.nmedia.R
-
-class AppActivity : AppCompatActivity(R.layout.activity_app) {
-    private val mediaObserver = MediaLifecycleObserver()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        lifecycle.addObserver(mediaObserver)
-
-        findViewById<Button>(R.id.play).setOnClickListener {
-            mediaObserver.apply {
-                player?.setDataSource(
-                    "https://raw.githubusercontent.com/netology-code/andad-homeworks/master/09_multimedia/data/1.mp3"
-                )
-            }.play()
-        }
-    }
-}*/
-
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -40,8 +17,8 @@ class AppActivity : AppCompatActivity() {
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val mediaPlayer = MediaPlayer()
-        mediaPlayer.setAudioAttributes(
+        var mediaPlayer: MediaPlayer? = null
+        mediaPlayer?.setAudioAttributes(
             AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
@@ -52,10 +29,9 @@ class AppActivity : AppCompatActivity() {
         val adapter = AudioAdapter(object : OnInteractionListener {
             override fun onPlay(audio: Audio) {
 
-                if (mediaPlayer.isPlaying) {
-                    mediaPlayer.stop()
-                    mediaPlayer.reset()
-                    //mediaPlayer.release()
+                if (mediaPlayer?.isPlaying == true) {
+                    mediaPlayer?.stop()
+                    mediaPlayer?.reset()
                 }
 
                 if (audio.isPlaying) {
@@ -71,9 +47,26 @@ class AppActivity : AppCompatActivity() {
 
                 } else {
                     try {
-                        mediaPlayer.setDataSource(audio.songUrl)
-                        mediaPlayer.prepareAsync()
-                        mediaPlayer.setOnPreparedListener { mp ->
+                        mediaPlayer = MediaPlayer()
+
+                        mediaPlayer?.setOnCompletionListener {
+                            val playingNext: Audio = viewModel.getNext()
+
+                            mediaPlayer?.release()
+                            mediaPlayer = null
+                            mediaPlayer = MediaPlayer()
+                            mediaPlayer?.setDataSource(playingNext.songUrl)
+                            mediaPlayer?.prepareAsync()
+                            mediaPlayer?.setOnPreparedListener { mp ->
+                                mp.start()
+                            }
+
+                            viewModel.playById(playingNext.id)
+                        }
+
+                        mediaPlayer?.setDataSource(audio.songUrl)
+                        mediaPlayer?.prepareAsync()
+                        mediaPlayer?.setOnPreparedListener { mp ->
                             mp.start()
                         }
                     } catch (e: Exception) {
