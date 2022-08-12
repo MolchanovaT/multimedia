@@ -12,67 +12,39 @@ import ru.netology.nmedia.databinding.ActivityAppBinding
 import ru.netology.nmedia.viewmodel.AudioViewModel
 
 class AppActivity : AppCompatActivity() {
+
+    val mediaPlayer = MediaPlayer().apply {
+        setAudioAttributes(
+            AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+        )
+    }
+
+    val viewModel: AudioViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var mediaPlayer: MediaPlayer? = null
-        mediaPlayer?.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-        )
-
-        val viewModel: AudioViewModel by viewModels()
-
         val adapter = AudioAdapter(object : OnInteractionListener {
             override fun onPlay(audio: Audio) {
 
-                if (mediaPlayer?.isPlaying == true) {
-                    mediaPlayer?.stop()
-                    mediaPlayer?.reset()
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.stop()
+                    mediaPlayer.reset()
                 }
-
                 if (audio.isPlaying) {
-
                     viewModel.pauseById(audio.id)
-
                     Toast.makeText(
                         this@AppActivity,
                         "Audio has been paused",
                         Toast.LENGTH_SHORT
                     )
                         .show()
-
                 } else {
-                    try {
-                        mediaPlayer = MediaPlayer()
-
-                        mediaPlayer?.setOnCompletionListener {
-                            val playingNext: Audio = viewModel.getNext()
-
-                            mediaPlayer?.release()
-                            mediaPlayer = null
-                            mediaPlayer = MediaPlayer()
-                            mediaPlayer?.setDataSource(playingNext.songUrl)
-                            mediaPlayer?.prepareAsync()
-                            mediaPlayer?.setOnPreparedListener { mp ->
-                                mp.start()
-                            }
-
-                            viewModel.playById(playingNext.id)
-                        }
-
-                        mediaPlayer?.setDataSource(audio.songUrl)
-                        mediaPlayer?.prepareAsync()
-                        mediaPlayer?.setOnPreparedListener { mp ->
-                            mp.start()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
+                    playAudio(audio)
                     viewModel.playById(audio.id)
 
                     Toast.makeText(this@AppActivity, "Audio started playing..", Toast.LENGTH_SHORT)
@@ -84,6 +56,23 @@ class AppActivity : AppCompatActivity() {
         binding.list.adapter = adapter
         viewModel.data.observe(this) { list ->
             adapter.submitList(list)
+        }
+    }
+
+    private fun playAudio(audio: Audio) {
+        mediaPlayer.setOnCompletionListener {
+            val nextAudio = viewModel.getNext()
+            mediaPlayer.stop()
+            mediaPlayer.reset()
+            playAudio(viewModel.getNext())
+            viewModel.playById(nextAudio.id)
+        }
+
+        mediaPlayer.setDataSource(audio.songUrl)
+        mediaPlayer.prepareAsync()
+        mediaPlayer.setOnPreparedListener { mp ->
+            mp.start()
+            mp.seekTo(mp.duration - 2000) // для тестирования - встаем за 2 секунды до конца песни
         }
     }
 }
