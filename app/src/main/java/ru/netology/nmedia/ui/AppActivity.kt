@@ -72,7 +72,6 @@ class AppActivity : AppCompatActivity() {
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener { mp ->
             mp.start()
-            mp.seekTo(mp.duration - 2000) // для тестирования - встаем за 2 секунды до конца песни
         }
     }
 }
